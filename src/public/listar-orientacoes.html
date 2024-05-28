@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Orientações</title>
+    <link rel="stylesheet" href="assets/css/listar-orientacoes.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Listar Orientações</h1>
+        <div id="orientacoes-lista"></div>
+        <div id="mensagem-sucesso" style="display: none; color: green;">Orientação deletada com sucesso!</div>
+    </div>
+
+    <script>
+        // Função para carregar as orientações
+        async function carregarOrientacoes() {
+            try {
+                const response = await fetch('/orientacoes');
+                const orientacoes = await response.json();
+                
+                const orientacoesLista = document.getElementById('orientacoes-lista');
+
+                orientacoes.forEach(orientacao => {
+                    const divOrientacao = document.createElement('div');
+                    divOrientacao.classList.add('orientacao');
+
+                    divOrientacao.innerHTML = `
+                        <h2>${orientacao.titulo}</h2>
+                        <p>${orientacao.descricao}</p>
+                        <img src="../${orientacao.imagem}" alt="Imagem da Orientação">
+                        <button class="deletar-btn" data-id="${orientacao.id}">Deletar</button>
+                        <button class="detalhes-btn" data-id="${orientacao.id}">Detalhes</button>
+                    `;
+
+                    orientacoesLista.appendChild(divOrientacao);
+                });
+
+                // Adicionar event listeners aos botões de deletar
+                document.querySelectorAll('.deletar-btn').forEach(button => {
+                    button.addEventListener('click', deletarOrientacao);
+                });
+
+            } catch (error) {
+                console.error('Erro ao carregar orientações:', error);
+            }
+        }
+
+        // Função para deletar uma orientação
+        async function deletarOrientacao(event) {
+            const orientacaoId = event.target.getAttribute('data-id');
+            const confirmacao = confirm('Você tem certeza que deseja deletar esta orientação?');
+
+            if (confirmacao) {
+                try {
+                    const response = await fetch(`/orientacao/${orientacaoId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        // Remover a orientação da lista após deletar
+                        event.target.parentElement.remove();
+
+                        // Mostrar mensagem de sucesso
+                        const mensagemSucesso = document.getElementById('mensagem-sucesso');
+                        mensagemSucesso.style.display = 'block';
+
+                        // Esconder a mensagem após 3 segundos
+                        setTimeout(() => {
+                            mensagemSucesso.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        console.error('Erro ao deletar orientação');
+                    }
+                } catch (error) {
+                    console.error('Erro ao deletar orientação:', error);
+                }
+            }
+        }
+
+        // Carregar as orientações quando a página carregar
+        window.addEventListener('load', carregarOrientacoes);
+    </script>
+</body>
+</html>
